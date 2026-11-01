@@ -45,4 +45,4 @@ class EasyMidiNotes:
         self.io = mido.open_ioport(port_name)
         self.note_type = note_type if note_type != "self_test" else user_note_type_test(self.io)
 
-    def
+    # def

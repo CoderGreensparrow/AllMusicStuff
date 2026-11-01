@@ -43,7 +43,7 @@ def user_output_chooser():
             print("Please input a decimal number, the number of one of the shown midi inputs to use as a midi input and output.")
 
 def main():
-    inport = mido..open_input(user_input_chooser())
+    inport = mido.open_input(user_input_chooser())
     outport = mido.open_output(user_output_chooser())
     in_msgs = []
     out_msgs = []
