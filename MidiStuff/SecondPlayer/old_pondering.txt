@@ -1,0 +1,203 @@
+PROBLEM:
+Have a software that acts as a "second player", following along and playing the e.g.
+- pedals for the organ (as I don't have pedals at home)
+- 2nd pair of hands in a piece for four hands
+- etc.
+
+THEORETICAL SOLUTION:
+1. Have the digital piano connected through MIDI.
+2. Supply the "second player" software with the currently played piece of music.
+3. As I play, the software "listens" to the MIDI input and interprets what it detects.
+   THEORY:
+   As the software doesn't need to dictate the tempo of the music, it just has to wait for me
+   pressing down the right combinations of keys one after the other.
+   If we go from left-to-right in a simple melody, like:
+   C E G G A G C E G G G F E D C,
+   the program just needs to wait until the next keystroke is played.
+   But if the melody has accords and such, the program needs to wait until all the keys of that accord have been pressed.
+   Since MIDI sends the key presses one after the other, regardless of it being an accord (citation needed?), the program has to expect
+   key presses of an accord arriving in a random order (citation needed? but I will program as if this was true).
+   Example:
+   CEG C" CEG C" CEGE" C" (where " means the octave above the base octave)
+   Here, at first, the program expects the following order of key presses:
+   1) A C, an E and a G in a random order
+   2) A C"
+   3) A C, an E and a G in a random order
+   4) A C"
+   5) A C, an E, a G and an E" in a random order
+   6) A C"
+   As you can see, the program thus expects **some key presses in order, some key presses in any order**.
+   And so, the program can follow along the key presses.
+
+   THEORY #2:
+   However, songs are not as simple as that. Some notes may be held while other notes are playing.
+   Some notes may have trills, which means a bunch a physical key presses and releases.
+   Some notes may have appoggiatura, little extra notes before or after the main note.
+   And these things can have different playing styles in different centuries!
+   So, I made some modifications:
+   1. The program creates a virtual representation of the keyboard (which is probably just a boolean list), that records
+      for each key if it is currently pressed down or not.
+   2. To know which key *should* be held one-after-another, the score is converted into a form
+      useful for this kind of "following the order of th pressed down keys", described above.
+      This form is essentially like that example above. For example:
+      C E G G | G A G E | G G F F | E E D, (| is a bar divisor, and the last D is 2 long)
+      the bass is ceg | ceg | g,df | g,df (where small letters mean "under the base octave by 1 octave",
+                                           small letters and a comma mean "under the base octave by 2 octaves"
+                                           and the accords fill their whole bar)
+      This gets converted to the **sequence:
+      cegC cegE cegG cegG cegG cegA cegG cegE g,dfG g,dfG g,dfF g,dfF g,dfE g,dfE g,dfD
+      The sequence has no timing information, it only tells the software that is has to wait for these
+      combinations of keys to be held down one after the other.
+      And "combinations of keys being held down" means that the keys in the combination have to be held down already,
+      or get held down in a random order, and in the end, all the currently pressed down keys should end up
+      being that key combination.*
+      *This is another great insight. Since these combinations store what SHOULD be held down,
+      these keys are the ONLY ONES THAT SHOULD BE HELD DOWN, meaning the WHOLE "HELD DOWN VIRTUAL KEYBOARD" must equal a
+      theoretical keyboard, where ONLY THESE KEYS ARE HELD DOWN. This could be a good way to check which keys are held down,
+      as this is the same as checking the equivalence of two boolean lists.
+   3. Certain playing styles, trills, appoggiatura etc. will be simplified.
+      (How exactly is to be determined)
+   4. I make mistakes. The program should be good enough to detect mistakes.
+      THEORY OF DETECTING MISTAKES
+      When I make a mistake, the currently held down keys should have some minor difference to what should be ideally held down.
+      This means that I could take the number of differences between the "ideal" boolean list and the "actual" boolean list of keys of the keyboard.
+      This way, I get the number of differences.
+      If the number of differences reaches 0, that means that I got to the right combination of keys.
+      ! This is another great insight.
+      This means that I have developed a way to measure how many keys I still need to toggle to get to the next combinations of keys
+      in the sequence**.
+
+      Therefore, the program could be adjusted to wait until I have the next key combination fully correct and only then move on,
+      or it could be set to have a little lee-way, like 1 or 2 differences.
+      IMPORTANT: If the next difference would only be 1 note though (e.g. cegC cegE), than the lee-way should probably be discarded,
+      as the program would just move on immediately to the next combination of keys right after what should be playing.
+      E.g. If the lee-way is 1 key difference and the sequence is cegC cegE cegG cegF, than even if I press down only cegC, the program goes through
+      ALL of the combinations of keys, as cegC only differs by one key when compared to cegE, cegG or cegF.
+      IMPORTANT: In fact, if the lee-way is 1, and cegC was the starting combination, and I only pressed ceg, the program would still be satisfied.
+
+   REWORKED THEORY:
+   Since I have pondered about this a lot more, here's a theoretical solution to this:
+   1. The sheet music is converted to the form described above. This form is essentially a list of keyboard states.
+      Every change of keyboard state is recorded. (Of course, the change of an accord isn't recorded note-by-note).
+      This list of states will be called the Note sequence.
+      IMPORTANT NOTE: Silence is a keyboard change. Hence, releases, not just presses are recorded.
+   2. The computer keeps track of the currently held-down keys at all times, in a list that I will call the List of key states.
+   3. When the computer moves on to the next desired keyboard state in the Note sequence,
+      it compares it with the current List of key states,
+      which means that it checks how many differences there are (e.g. how many notes are pressed that shouldn't be and how many aren't pressed that should be pressed).
+   4. If the number of differences is equal to or less than 0 or some other set value (called the Leeway),
+      the software now considers the current List of key states to have achieved the current keyboard state in the Note sequence,
+      (meaning the user has pressed down enough of the right keys),
+      and moves on to the next item in the Note sequence.
+      At this step, the computer can do its job, meaning
+      THIS IS THE POINT WHEN THE COMPUTER STARTS PLAYING SOMETHING TOO.
+   5. Repeat from point 3. until the end of the sheet music.
+
+   Note: this doesn't include when the user doesn't play anything.
+   There are parts of music where there is full silence.
+   There are also parts that the computer has to fully play by itself.
+   E.g. if only the pedal is played on an organ and the computer has that part, the computer has to
+   play without the help of a human dictating the tempo.
+   And I haven't considered that... wait a moment, need to rework the theory again...
+
+   REWORKED THEORY EXTRA (continuation of REWORKED THEORY):
+   6. There are other thing to watch out for, too.
+   For example, the computer may need to change the state of ITS OWN PARTS of the music (like the pedals)
+   without the user having to do anything (like if the user just holds down an accord and the computer with the pedals takes the solo).
+   Or there are cases when the computer has to wait for the user to RELEASE the keys, and release its own part of the music as the user releases theirs.
+   Or there are cases when... there should be total silence.
+   Or there are cases when the user doesn't have to play anything and the computer takes the lead for a bit.
+   As the sheet music will tell if any of these are present, the computer can prepare:
+       a) The user should give the computer a tempo for when it has to play by itself
+       b) Analyse the sheet music for the following case:
+           The computer should change its List of output keys (the name for what the computer is currently holding down
+           THE THEORY OF PLAYING IS DISCUSSED BELOW), without the human having to play something at the same time in the music
+           e.g. cegC g,dfC (where C is held down continuously by the human, and the computer decides for itself when to switch from
+           ceg to g,df)
+                This case above includes the case when the user doesn't have to play anything and the computer should play by itself.
+   So when the computer reaches a keyboard state in the Note sequence that has the property that the computer
+   has to play under it without the human telling it what to play when, (e.g. the computer has to play a solo),
+   the computer does so by... starting to play automatically for that period with the given tempo.
+   END OF THEORY
+   So the software follows along with my playing.
+   How the software plays is here:
+4. The software outputs what I tell it to output based on the score.
+   THEORY
+   Similarly to point 3.:
+   1. The sheet music is converted to a Note sequence, but this time, for the computer's part of the music specifically.
+      This is called Output sequence.
+      Since there may be parts where the user doesn't have to play anything, there may be MULTIPLE items in the Output sequence
+      corresponding to one keyboard state in the Note sequence of the user.*
+      (e.g. If the Note sequence of the user is: [C, z, C], meaning C, silence, C,
+      and the Output sequence is [z, C, E, G, CEG, z], than the computer will play C E G CEG by itself at a set tempo when the user currenlty "plays" the "z" item.
+      Here, the first item in the Note sequence is connected to the first of the Output sequence (C - z),
+      the second item of the Note seq. is connected to the 2nd, 3rd, 4th and 5th items of the Output seq. (z - [C, E, G, CEG])
+      and the last items are connected too (C - z).
+      You can actually see my proposed solution on how to store this link between the two lists in programming. Nested lists:
+      [C, z, C] is connected to [z, [C, E, G, CEG], z].)
+
+      *You may ask: why doesn't the Note sequence also contain nested lists? Here, such a case could happen:
+      Note sequence:   [C,   E, G, E, C,   E, G, E, F,   D,   C]
+      Output sequence: [ceg, z, z, z, ceg, z, z, z, gdf, gdf, ceg]
+      In this case, if the Note sequence also had nested lists, where a nested list's index corresponded with the item of the same index in the Output list,
+      the Output list could be simplified too!
+      Like so: [C, [E, G, E], C, [E, G, E], [F, D], C]
+               [ceg, z,       ceg, z,       gdf,    ceg]
+      That may be a good point... TODO
+   2. The computer keeps track of what it is holding down at all times in a (boolean) list called List of output keys.
+   3. Every time the computer detects that the user is playing the right thing (or plays that at least good enough, see Leeway),
+      it plays the corresponding item in the Output sequence.
+      Whether that item is one state of the keyboard, or multiple that need to be played, the computer plays it.
+      a) Playing one state is easy
+      b) When playing multiple states by itself, the software needs a tempo.
+      So the user needs to set a tempo beforehand, which tells the program how to play when it needs to play by itself.
+   END OF THEORY
+
+Since this description got too long, I will rewrite it...
+
+I have reaized that when the computer needs to play by itself, it doesn't know how long each note is...
+Which is pretty important.
+
+REWORKED THEORY:
+    Definitions and variables:
+        User part: Part of the music that the user should play (stored as a MIDI)
+        Output part: Part of the music that the software should play (stored as a MIDI)
+        Keyboard state: A representation of the keyboard at the moment as a boolean list.
+                        Each index from 0 to 127 (corresponding to the MIDI keys) is a boolean value meaning "is the key held down?".
+                        True = key pressed down, False = key not pressed down.
+        Output keyboard state: A representation of what keys should be held down at the moment by the software.
+        "keyboard state": The keys held down at the moment.
+        "desired keyboard state": What keys should be held down at the moment.
+        "actual keyboard state": The keys held down at the moment, actually, not just desired.
+        "difference between keyboard states": How many keys are pressed that shouldn't be, and how many are not pressed that should be.
+                                              Mathematically, how many elements of the keyboard states have different boolean values for the keys?
+        "next keyboard state in the User/Output part": meaning the next time the program determines the keyboard state changes in the MIDI sheet music.
+        Leeway: PRECISE DEFINITION WILL BE WRITTEN AS THE WRITING PROGRESSES.
+        Tempo: The tempo of the music (can be set by the user), which is useful for when the computer plays solo parts for example.
+        "listening": the software waiting for and recording MIDI data from the piano continuously
+        "playing": the software sending MIDI data to the piano
+        "listening logic": the way the software handles listening to the user playing and following along the the music
+        "playing logic": the way the software handles playing the required parts of the music
+    1. MIDI is used as the communication protocol and storage medium of sheet music.
+    1/b. When MIDI is used as the storage medium, the MIDI file storing the sheet music MUST HAVE the special property that EVERY NOTE THAT IS PLAYED TOGETHER, MUST START TOGETHER.
+         (e.g. accords like C E G should have notes that start together, at the same time.)
+         The reason for this is that it could cause problems with the listening logic.
+    2. The computer ALWAYS follows the user's pace, IF IT CAN.
+    3. The computer NEVER dictates the tempo, only when it HAS TO. (e.g. in parts when it plays a solo)
+
+    I. Setup
+        1. The user inputs:
+            (- the MIDI piano)
+            - a MIDI file with the sheet music, formatted as per 1/b.
+            - a tempo for the song (or use the default from the MIDI file)
+        2. Analysing the MIDI file:
+            a) the MIDI file is split up into a User part and an Output part (somehow).
+            Loop:
+                b) the software looks for the next keyboard state change in the MIDI file
+                c) If a keyboard state change happens in both the User and the Output part,
+                    then the changed notes are paired together.
+                   If a keyboard state change happens in only the User part,
+                    then the changed notes get added to the group of notes of the previous keyboard state in the Output part
+                   If a keyboard state change happens in only the Output part,
+                    then the changed notes get added to the group of notes of the previous keyboard state in the User part
+                d) repeat until the end, and add the empty keyboard change when all notes are released.

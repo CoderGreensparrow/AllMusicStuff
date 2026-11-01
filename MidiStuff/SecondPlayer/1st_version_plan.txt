@@ -1,0 +1,99 @@
+1st version of SecondPlayer
+
+
+
+I.
+1. KEEPING TRACK OF USER INPUT
+a) The program keeps track of all the keys the user is playing in at the moment.
+b) It also records the last R seconds of audio.
+2. MIDI FILES
+a) The program reads the music data from MIDI (.mid) files.
+b) A TRACK-ek szét vannak osztva az ember és a gép között attól függően, hogy ki melyiket játsza.
+   Egy TRACK-et egyszerre vagy csak a gép, vagy csak az ember játszhat.
+
+
+
+II. THE PROCESS OF PLAYING ALONG WITH THE USER
+a) A gép legfőbb célja egy KOMPROMISSZUMOS JÁTÉK.
+   A MIDI fájl diktál egy tempót, dinamikát stb., és az ember diktál egy másikat.
+   (Ennek okai:
+        1) A ember direkt is diktálhat más tempót, mint ami a MIDI fájlban van, pl. hogy ha a MIDI fájl egy nyers gépi játéka egy romantikus műnek.
+        2) De emberi hibából is fakadhat tempóbeli, dinamikabeli változtatás.)
+   A KOMPROMISSZUMOS JÁTÉK megteremtéséhez meg kell adni a gépnek, hogy mennyire legyen ENGEDÉKENY, mennyi "LEEWAY"-t adjon egy-egy paraméterben.
+   Ezek azt adják meg, hogy inkább kövesse pontosan a MIDI fájlban szereplő utasításokat, vagy inkább azokat kövesse, amiket az ember éppen zajló játékából le tud vonni.
+   // ld. lejjebb //
+
+1. WHEN DOES THE COMPUTER START
+a) Két lehetőség van:
+    1) A számítógép beszámol egy metronóm imitáció lejátszásával a MIDI eszközön.
+    2) A számítógép figyeli, hogy a játékos mikor nyomja le az első hangot.
+    FIGYELEM: A 2)-es lehetőség csak akkor használható, ha csak egyedül az ember kezd el játszani szólamot (TRACK-et), vagy a gép és az ember együtt kezd el játszani.
+
+2. "SECOND PLAYER MODES" (HOW TO FOLLOW THE PLAYING OF THE HUMAN)
+   GENERAL OVERVIEW
+1) TEMPÓKÖVETÉS (Lt)
+a) Két szélsőértéke van annak, ahogy a gép követheti az ember játékát tempóban:
+    1) A gép minden esetben az ember tempójának a legpontosabb követésére törekszik.
+    2) A gép a MIDI fájl által megadott tempó legpontosabb követésére törekszik, FIGYELMEN KÍVÜL HAGYVA AZ EMBER JÁTÉKÁT.
+b) A szélsőértékek közt átmenet van. Ez a gép "engedékenységét", "leeway", "error-tolerance" adhatja meg, avagy a gép "szigorúságát", "strictness".
+   (Az antropomorfizált fogalmak az ember játékához való hozzáállást írják le.)
+c) Ezt lehet jellemezni valamilyen számmal, legyen ez Lt ("leeway of tempo").
+   Minél nagyobb az érték, annál kevésbé veszi a gép figyelembe a MIDI fájl tempóját, és figyel az ember tempójára.
+   Minél kisebb ez az érték, annál kevésbé veszi a gép figyelembe az ember tempóját, és csak a MIDI fájl tempójára figyel.
+2) DINAMIKAKÖVETÉS (Ld)
+a) A tempókövetéshez hasonlóan be lehet vezetni az
+   Ld ("leeway of dynamics") értékét.
+   Minél nagyobb az érték, annál kevésbé veszi figyelembe a gép a MIDI fájl... stb.
+b) FIGYELEM: A dinamikakövetést ennél sokkal komplikáltabban is lehet implementálni, hiszen az a tempótartásnál egy komplikáltabb folyamat.
+SUMMARY 2:
+    1) TEMPÓKÖVETÉS (Lt "leeway of tempo"): Ha nagy, akkor inkább az ember tempóját követi a gép, ha kicsi, akkor inkább a MIDI-jét.
+    2) DINAMIKAKÖVETÉS (Ld "leeway of dynamics"): Ha nagy, akkor inkább az ember dinamikáját követi a gép, ha kicsi, akkor inkább a MIDI-jét.
+
+3. TECHNICAL DETAILS OF POINT 2.
+a) A gép önmagában fenntart egy változót, ami leírja, hogy éppen hol jár a darabban. (MIDI esetében ez
+
+
+
+
+MIDI IMPLEMENTATION:
+The system works by building a custom version of the MIDI file that shows notes with a start and end time instead of individual MIDI events.
+[
+    Note(start=t_start, end=t_end, note=, velocity=, etc.),
+    Note(...
+]
+(The t_start/end are measured in TICKS* from the start of the song.)  *MIDI TICKS
+A function can be used to query all the notes held down at a given point in time.
+Since all notes are in ORDER OF THEIR START TIME, one doesn't need to look through the whole list every time.
+N E W   I D E A :
+Since this still wouldn't solve the problem of looking through the whole thing, I have another idea:
+Keep a DICT OF KEYS PRESSED DOWN AT EVERY POSSIBLE T TICK. (T being the (imaginary) playback cursor's position defined measured in ticks from the start of the song.)
+{
+    0: [],
+    1: [],
+    2: [64],
+    3: [64],
+    4: [64, 69],
+    5: [64, 69],
+    etc.
+}
+This would consume huge amounts of RAM though.
+So, it would function like a buffer/rolling window, like the currently displayed notes in a piano roll visualization.
+We would know what notes are down at what tick AROUND THE PLAYBACK CURSOR, not EVERYWHERE.
+This can be implemented by MODELLING A VIRTUAL KEYBOARD that gets the MIDI MESSAGES BEFORE THE REAL KEYBOARD.
+And at EVERY POINT OF TICK IN TIME, i can RECORD WHAT NOTES ARE PRESSED DOWN ON IT.
+To save up memory, I SHOULD DELETE SAMPLES THAT ARE "TOO OLD". (Determine that later.)
+--- This way, I can query what notes are pressed down at any point of tick in time in a window around the playback cursor.
+----- This is needed because the software needs to adjust to player demands.
+=========== FURTHER OPTIMASATION:
+Instead of a dict, USE A LIST and RECORD WHAT TICK THE FIRST VALUE'S AT.
+This way, a simple first_val_tick + list_index can say the absolute T.
+
+
+
+
+
+NEW IDEA:
+Think of DAWs. Just searching for note-off-note-on I can see that the note is off in that region and
+searching for note-on-note-off I can see its on.
+I originally did this thing to avoid searching through lists, but it may actually be much less
+intensive to just search through the list of MIDI messages rathen than generate all that stuff in PianoObserver.
