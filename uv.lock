@@ -11,14 +11,18 @@ dependencies = [
     { name = "mido" },
     { name = "numpy" },
     { name = "pyaudio" },
+    { name = "pygame" },
+    { name = "python-rtmidi" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.9" },
-    { name = "mido", specifier = ">=1.3.3" },
+    { name = "mido", specifier = "==1.3.3" },
     { name = "numpy", specifier = ">=2.2.6" },
     { name = "pyaudio", specifier = ">=0.2.14" },
+    { name = "pygame", specifier = ">=2.6.1" },
+    { name = "python-rtmidi", specifier = ">=1.5.8" },
 ]
 
 [[package]]
@@ -196,6 +200,21 @@ wheels = [
 ]
 
 [[package]]
+name = "pygame"
+version = "2.6.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/49/cc/08bba60f00541f62aaa252ce0cfbd60aebd04616c0b9574f755b583e45ae/pygame-2.6.1.tar.gz", hash = "sha256:56fb02ead529cee00d415c3e007f75e0780c655909aaa8e8bf616ee09c9feb1f", size = 14808125, upload-time = "2024-09-29T13:41:34.698Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/54/0b/334c7c50a2979e15f2a027a41d1ca78ee730d5b1c7f7f4b26d7cb899839d/pygame-2.6.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:9beeb647e555afb5657111fa83acb74b99ad88761108eaea66472e8b8547b55b", size = 13109297, upload-time = "2024-09-29T14:25:34.709Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/48/f8b1069788d1bd42e63a960d74d3355242480b750173a42b2749687578ca/pygame-2.6.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:10e3d2a55f001f6c0a6eb44aa79ea7607091c9352b946692acedb2ac1482f1c9", size = 12375837, upload-time = "2024-09-29T14:25:50.538Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/33/a1310386b8913ce1bdb90c33fa536970e299ad57eb35785f1d71ea1e2ad3/pygame-2.6.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:816e85000c5d8b02a42b9834f761a5925ef3377d2924e3a7c4c143d2990ce5b8", size = 13607860, upload-time = "2024-09-29T11:10:44.173Z" },
+    { url = "https://files.pythonhosted.org/packages/88/0f/4e37b115056e43714e7550054dd3cd7f4d552da54d7fc58a2fb1407acda5/pygame-2.6.1-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8a78fd030d98faab4a8e27878536fdff7518d3e062a72761c552f624ebba5a5f", size = 14304696, upload-time = "2024-09-29T11:39:46.724Z" },
+    { url = "https://files.pythonhosted.org/packages/11/b3/de6ed93ae483cf3bac8f950a955e83f7ffe59651fd804d100fff65d66d6c/pygame-2.6.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:da3ad64d685f84a34ebe5daacb39fff14f1251acb34c098d760d63fee768f50c", size = 13977684, upload-time = "2024-09-29T11:39:49.921Z" },
+    { url = "https://files.pythonhosted.org/packages/d3/05/d86440aa879708c41844bafc6b3eb42c6d8cf54082482499b53139133e2a/pygame-2.6.1-cp310-cp310-win32.whl", hash = "sha256:9dd5c054d4bd875a8caf978b82672f02bec332f52a833a76899220c460bb4b58", size = 10251775, upload-time = "2024-09-29T11:40:34.952Z" },
+    { url = "https://files.pythonhosted.org/packages/38/88/8de61324775cf2c844a51d8db14a8a6d2a9092312f27678f6eaa3a460376/pygame-2.6.1-cp310-cp310-win_amd64.whl", hash = "sha256:00827aba089355925902d533f9c41e79a799641f03746c50a374dc5c3362e43d", size = 10618801, upload-time = "2024-09-29T12:13:25.284Z" },
+]
+
+[[package]]
 name = "pyparsing"
 version = "3.3.3"
 source = { registry = "https://pypi.org/simple" }
@@ -215,6 +234,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/0e/df/f15f80383f152452d8985b36d95cb8751f901a3e0ff4cd27f7e118f168e2/python_dateutil-3.0.0.tar.gz", hash = "sha256:7ebcb3c29a92f3ceafe79a7a48a5c45677e9e004bbeec5742ac0bbb00560b7a2", size = 271066, upload-time = "2026-10-21T23:41:45.075Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5a/17/cebee01d1c0c1441174cf0456ddc91b280d79acb65340c05e41d77866ee8/python_dateutil-3.0.0-py2.py3-none-any.whl", hash = "sha256:3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd", size = 94659, upload-time = "2026-10-21T23:41:43.431Z" },
+]
+
+[[package]]
+name = "python-rtmidi"
+version = "1.5.8"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/dd/ee/0f91965dcc471714c69df21e5ca3d94dc81411b7dee2d31ff1184bea07c9/python_rtmidi-1.5.8.tar.gz", hash = "sha256:7f9ade68b068ae09000ecb562ae9521da3a234361ad5449e83fc734544d004fa", size = 368130, upload-time = "2023-11-20T21:55:02.192Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/46/9c/95c0a6a43bd24a17568e1e31008b1fab7e9a2e54c0ed7301e8d5cc9fa109/python_rtmidi-1.5.8-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:efc07413b30b0039c0d35abe25a81d740c7405124eb58eed141a8f24388e6fe0", size = 148826, upload-time = "2023-11-20T21:54:20.658Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/9b/8e452d6edc2c04e3407f542d3185c66ffc2d39c8811cf2b117653a0a4d63/python_rtmidi-1.5.8-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:844bd12840c9d4e03dfc89b2cd57c55dcbf5ed7246504d69c6c661732249b19c", size = 145363, upload-time = "2023-11-20T21:54:23.023Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/48/aa1d4924f7aa238a192d69aa565b315af0037f684c9475e8b860c679a655/python_rtmidi-1.5.8-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:8bbaf7c7164471712a93ac60c8f9ed146b336a294a5103223bbaf8f10709a0bf", size = 293253, upload-time = "2023-11-20T21:54:24.899Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/24/32dc239047a56f44d8d8090d55010f85a38ed959ffe517c2e87a2aa34190/python_rtmidi-1.5.8-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:878ce085dfb65c0974810a7e919f73708cbb4c0430c7924b78f25aea1dd4ebee", size = 304051, upload-time = "2023-11-20T21:54:26.82Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/0c/cf771eca1b64610e627ca1e67be8390ecdf5e0e1914efbdd9d50ac4c5986/python_rtmidi-1.5.8-cp310-cp310-win_amd64.whl", hash = "sha256:f2138005c6bd3d8b9af05df383679f6d0827d16056e68a941110732310dcb7dd", size = 132157, upload-time = "2023-11-20T21:54:30.059Z" },
 ]
 
 [[package]]

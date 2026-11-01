@@ -1,15 +1,15 @@
 import time
 from math import pi, log10, sin
 
-import SineWavePiano.midi as m
+import midi as m
 import mido
 import numpy as np
 
 import matplotlib.pyplot as plt
 
-import SineWavePiano.audio as a
+import audio as a
 
-mint = m.MidiIO(m.MODE_IN_ONLY, ["LoopBe Internal MIDI"], False)
+mint = m.MidiIO(m.MODE_IN_ONLY, ["LoopBe Internal MIDI 0"], False)
 SAMPLING_FREQ = 48000
 SAMPLE_LEN = 1 / SAMPLING_FREQ
 audioint = a.AudioInterface(a.get_index_by_name("Microsoft hanglekĂ©pzĹ‘ - Output"), output=True, rate=SAMPLING_FREQ, record=False)
@@ -32,7 +32,7 @@ def sine_function_at_t(A, freq, t):
 def square_function_at_t(A, freq, t):
     return A if A * sin(2*pi*freq*t) > 0 else -A
 
-formants = [0.7, 0.3]  # normalized 0 and 1
+formants = [0.7, 0.3, 0, 0, 0.01, 0.01]  # normalized 0 and 1
 multipliers = []
 for i in range(0, len(formants)):
     multipliers.append((i+2) / (i+1))
@@ -56,7 +56,8 @@ for i in formants:
     if i > 0:
         real_formants += 1
 max_note_num = 36 // real_formants - 1
-max_note_num = 7
+# max_note_num = 7
+max_note_num = 30
 print("Polyphony up to", max_note_num, "notes.")
 
 while True:
@@ -81,7 +82,8 @@ while True:
         freq = get_note_freq(midi_note)
         this_t = t - start_time
         A = current_amplitude * ((midi_velocity) / 127)**2 / log10(freq - 20) * (1/(this_t*10+1))
-        sample += square_function_at_t(A, freq, this_t)
+        # A = current_amplitude * ((midi_velocity) / 127)**2 / log10(freq - 20)
+        sample += my_function_at_t(A, freq, this_t)
     #  samples.append(sample)
     #  sample *= 0
     audioint.write(

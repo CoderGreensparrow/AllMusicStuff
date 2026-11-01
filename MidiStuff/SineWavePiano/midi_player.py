@@ -1,7 +1,7 @@
 import mido
 
-mid = mido.MidiFile("beethoven_mond_3.mid")
+mid = mido.MidiFile("mixed-nuts.mid")
 
-with mido.open_output("Microsoft GS Wavetable Synth 0", autoreset=True) as outport:
+with mido.open_output("LoopBe Internal MIDI 1", autoreset=True) as outport:
     for msg in mid.play():
         outport.send(msg)
